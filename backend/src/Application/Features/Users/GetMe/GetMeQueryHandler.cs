@@ -5,15 +5,22 @@ using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
-namespace Application.Features.Users.GetByEmail;
+namespace Application.Features.Users.GetMe;
 
-internal sealed class GetUserByEmailQueryHandler(IApplicationDbContext context, IUserContext userContext)
-    : IQueryHandler<GetUserByEmailQuery, UserResponse>
+internal sealed class GetMeQueryHandler(IApplicationDbContext context, IUserContext userContext)
+    : IQueryHandler<GetMeQuery, UserResponse>
 {
-    public async Task<Result<UserResponse>> Handle(GetUserByEmailQuery query, CancellationToken cancellationToken)
+    public async Task<Result<UserResponse>> Handle(GetMeQuery query, CancellationToken cancellationToken)
     {
+        Guid? userId = userContext.UserId;
+        if (userId is null)
+        {
+            return Result.Failure<UserResponse>(UserErrors.Unauthorized());
+        }
+
         UserResponse? user = await context.Users
-            .Where(u => u.Email == query.Email)
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
             .Select(u => new UserResponse
             {
                 Id = u.Id,
@@ -25,7 +32,7 @@ internal sealed class GetUserByEmailQueryHandler(IApplicationDbContext context, 
 
         if (user is null)
         {
-            return Result.Failure<UserResponse>(UserErrors.NotFoundByEmail);
+            return Result.Failure<UserResponse>(UserErrors.NotFound());
         }
 
         if (user.Id != userContext.UserId)
