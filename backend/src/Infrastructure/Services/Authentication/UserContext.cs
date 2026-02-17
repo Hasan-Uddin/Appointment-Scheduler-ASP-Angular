@@ -1,7 +1,8 @@
 ﻿using Application.Abstractions.Authentication;
+using Infrastructure.Services.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace Infrastructure.Services.Authentication;
+namespace Infrastructure.Authentication;
 
 internal sealed class UserContext : IUserContext
 {
@@ -12,10 +13,18 @@ internal sealed class UserContext : IUserContext
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid UserId =>
+    public Guid? UserId =>
+            (!IsAuthenticated) ?
+                throw new ApplicationException("User is not authenticated")
+            : _httpContextAccessor
+                .HttpContext!
+                .User
+                .GetUserId();
+
+    public bool IsAuthenticated =>
         _httpContextAccessor
             .HttpContext?
-            .User
-            .GetUserId() ??
-        throw new ApplicationException("User context is unavailable");
+            .User?
+            .Identity?
+            .IsAuthenticated ?? false;
 }

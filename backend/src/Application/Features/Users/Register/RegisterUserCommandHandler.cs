@@ -21,8 +21,7 @@ internal sealed class RegisterUserCommandHandler(IApplicationDbContext context, 
         {
             Id = Guid.NewGuid(),
             Email = command.Email,
-            FirstName = command.FirstName,
-            LastName = command.LastName,
+            Name = command.FirstName,
             PasswordHash = passwordHasher.Hash(command.Password)
         };
 

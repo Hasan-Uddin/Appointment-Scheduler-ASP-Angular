@@ -1,21 +1,27 @@
-﻿using Application.Abstractions.Messaging;
-using Application.Features.Users.GetById;
+﻿using Application.Abstractions.Authentication;
+using Application.Abstractions.Messaging;
+using Application.Features.Users.GetMe;
 using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;
 
 namespace Web.Api.Endpoints.Users;
 
-internal sealed class GetById : IEndpoint
+internal sealed class GetMe : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("users/{userId}", async (
-            Guid userId,
-            IQueryHandler<GetUserByIdQuery, UserResponse> handler,
+        app.MapGet("api/users/me", async (
+            IUserContext userContext,
+            IQueryHandler<GetMeQuery, UserResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var query = new GetUserByIdQuery(userId);
+            if(!userContext.IsAuthenticated)
+            {
+                return Results.Unauthorized();
+            }
+
+            var query = new GetMeQuery();
 
             Result<UserResponse> result = await handler.Handle(query, cancellationToken);
 

@@ -2,6 +2,9 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Email;
+using Application.Abstractions.Interfaces;
+using Infrastructure.Authentication;
+using Infrastructure.Persistence;
 using Infrastructure.Persistence.Database;
 using Infrastructure.Persistence.DomainEvents;
 using Infrastructure.Services.Authentication;
@@ -31,6 +34,8 @@ public static class DependencyInjection
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal()
             .Configure<EmailSettings>(configuration.GetSection("EmailSettings"))
+            .AddScoped<IGoogleAuthSettings, GoogleAuthSettings>()
+            .AddScoped<IUserRepository, UserRepository>()
             .AddScoped<IEmailService, EmailService>();
 
     private static IServiceCollection AddServices(this IServiceCollection services)
@@ -48,7 +53,7 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>(
             options => options
-                .UseNpgsql(connectionString, npgsqlOptions =>
+                .UseSqlite(connectionString, npgsqlOptions =>
                     npgsqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, Schemas.Default))
                 .UseSnakeCaseNamingConvention());
 
@@ -61,7 +66,7 @@ public static class DependencyInjection
     {
         services
             .AddHealthChecks()
-            .AddNpgSql(configuration.GetConnectionString("Database")!);
+            .AddSqlite(configuration.GetConnectionString("Database")!);
 
         return services;
     }
@@ -98,6 +103,8 @@ public static class DependencyInjection
         services.AddScoped<PermissionProvider>();
 
         services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+        services.AddHttpClient<IGoogleAuthService, GoogleAuthService>();
 
         services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 
