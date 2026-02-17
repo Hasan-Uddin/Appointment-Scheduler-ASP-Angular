@@ -37,7 +37,10 @@ internal sealed class EmailService(
             await smtp.SendAsync(mimeMessage, cancellationToken);
             await smtp.DisconnectAsync(true, cancellationToken);
 
-            logger.LogInformation("Email sent successfully to {To}", message.To);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Email sent successfully to {To}", message.To);
+            }
         }
         catch (Exception ex)
         {

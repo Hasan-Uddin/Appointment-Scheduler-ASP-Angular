@@ -11,12 +11,17 @@ internal sealed class PermissionAuthorizationHandler(IServiceScopeFactory servic
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
-        // TODO: You definitely want to reject unauthenticated users here.
-        if (context.User is { Identity.IsAuthenticated: true })
+        // Reject unauthenticated users immediately
+        if (context.User?.Identity?.IsAuthenticated != true)
         {
-            // TODO: Remove this call when you implement the PermissionProvider.GetForUserIdAsync
-            context.Succeed(requirement);
+            context.Fail();
+            return;
+        }
+        Guid? userId = context.User.GetUserId();
 
+        if (userId is null)
+        {
+            context.Fail();
             return;
         }
 
@@ -24,13 +29,18 @@ internal sealed class PermissionAuthorizationHandler(IServiceScopeFactory servic
 
         PermissionProvider permissionProvider = scope.ServiceProvider.GetRequiredService<PermissionProvider>();
 
-        Guid userId = context.User.GetUserId();
-
-        HashSet<string> permissions = await permissionProvider.GetForUserIdAsync(userId);
+        HashSet<string> permissions = await permissionProvider.GetForUserIdAsync(userId.Value);
 
         if (permissions.Contains(requirement.Permission))
         {
             context.Succeed(requirement);
         }
+        else
+        {
+            context.Fail();
+        }
+        Console.WriteLine($"User {userId} permissions: {string.Join(", ", permissions)}");
+        Console.WriteLine($"Required permission: {requirement.Permission}");
+
     }
 }
