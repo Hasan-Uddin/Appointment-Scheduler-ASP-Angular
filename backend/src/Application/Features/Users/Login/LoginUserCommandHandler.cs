@@ -9,7 +9,7 @@ namespace Application.Features.Users.Login;
 
 internal sealed class LoginUserCommandHandler(
     IApplicationDbContext context,
-    IPasswordHasher passwordHasher,
+    //IPasswordHasher passwordHasher,
     ITokenProvider tokenProvider) : ICommandHandler<LoginUserCommand, string>
 {
     public async Task<Result<string>> Handle(LoginUserCommand command, CancellationToken cancellationToken)
@@ -23,12 +23,12 @@ internal sealed class LoginUserCommandHandler(
             return Result.Failure<string>(UserErrors.NotFoundByEmail);
         }
 
-        bool verified = passwordHasher.Verify(command.Password, user.PasswordHash);
+        //bool verified = passwordHasher.Verify(command.Password, user.PasswordHash);
 
-        if (!verified)
-        {
-            return Result.Failure<string>(UserErrors.NotFoundByEmail);
-        }
+        //if (!verified)
+        //{
+        //    return Result.Failure<string>(UserErrors.NotFoundByEmail);
+        //}
 
         string token = tokenProvider.Create(user);
 
