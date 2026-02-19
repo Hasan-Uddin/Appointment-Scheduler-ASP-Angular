@@ -3,13 +3,14 @@ using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Email;
 using Application.Abstractions.Interfaces;
-using Infrastructure.Authentication;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Database;
 using Infrastructure.Persistence.DomainEvents;
 using Infrastructure.Services.Authentication;
 using Infrastructure.Services.Authorization;
 using Infrastructure.Services.Email;
+using Infrastructure.Services.GoogleCalendar;
+using Infrastructure.Services.SlotCalculator;
 using Infrastructure.Services.Time;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -29,13 +30,13 @@ public static class DependencyInjection
         IConfiguration configuration) =>
         services
             .AddServices()
+            .Repos()
             .AddDatabase(configuration)
             .AddHealthChecks(configuration)
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal()
             .Configure<EmailSettings>(configuration.GetSection("EmailSettings"))
-            .AddScoped<IGoogleAuthSettings, GoogleAuthSettings>()
-            .AddScoped<IUserRepository, UserRepository>()
+            
             .AddScoped<IEmailService, EmailService>();
 
     private static IServiceCollection AddServices(this IServiceCollection services)
@@ -43,7 +44,14 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
-
+        services.AddHttpClient<IGoogleCalendarService, GoogleCalendarService>();
+        services.AddScoped<ISlotCalculator, SlotCalculatorService>();
+        services.AddScoped<IGoogleAuthSettings, GoogleAuthSettings>();
+        return services;
+    }
+    private static IServiceCollection Repos(this IServiceCollection services)
+    {
+        services.AddScoped<IUserRepository, UserRepository>();
         return services;
     }
 
