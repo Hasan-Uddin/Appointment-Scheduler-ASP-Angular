@@ -78,7 +78,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("event_type_id");
 
-                    b.Property<Guid?>("EventTypeId1")
+                    b.Property<Guid>("EventTypeId1")
                         .HasColumnType("TEXT")
                         .HasColumnName("event_type_id1");
 
@@ -120,7 +120,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("user_id");
 
-                    b.Property<Guid?>("UserId1")
+                    b.Property<Guid>("UserId1")
                         .HasColumnType("TEXT")
                         .HasColumnName("user_id1");
 
@@ -284,10 +284,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("user_id");
 
-                    b.Property<Guid?>("UserId1")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("user_id1");
-
                     b.Property<string>("WelcomeMessage")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT")
@@ -299,10 +295,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .IsUnique()
                         .HasDatabaseName("ix_calendar_setting_user_id");
-
-                    b.HasIndex("UserId1")
-                        .IsUnique()
-                        .HasDatabaseName("ix_calendar_setting_user_id1");
 
                     b.ToTable("calendar_setting", "public");
                 });
@@ -495,9 +487,11 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_bookings_event_types_event_type_id");
 
-                    b.HasOne("Domain.EventTypes.EventType", null)
+                    b.HasOne("Domain.EventTypes.EventType", "EventType")
                         .WithMany("Bookings")
                         .HasForeignKey("EventTypeId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_bookings_event_types_event_type_id1");
 
                     b.HasOne("Domain.Users.User", null)
@@ -507,10 +501,16 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_bookings_users_user_id");
 
-                    b.HasOne("Domain.Users.User", null)
+                    b.HasOne("Domain.Users.User", "User")
                         .WithMany("Bookings")
                         .HasForeignKey("UserId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_bookings_users_user_id1");
+
+                    b.Navigation("EventType");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.CalendarSettings.CalendarSetting", b =>
@@ -521,11 +521,6 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_calendar_setting_users_user_id");
-
-                    b.HasOne("Domain.Users.User", null)
-                        .WithOne("CalendarSettings")
-                        .HasForeignKey("Domain.CalendarSettings.CalendarSetting", "UserId1")
-                        .HasConstraintName("fk_calendar_setting_users_user_id1");
                 });
 
             modelBuilder.Entity("Domain.EventTypes.EventType", b =>
@@ -558,9 +553,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Availabilities");
 
                     b.Navigation("Bookings");
-
-                    b.Navigation("CalendarSettings")
-                        .IsRequired();
 
                     b.Navigation("EventTypes");
                 });

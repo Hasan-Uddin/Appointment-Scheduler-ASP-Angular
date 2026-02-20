@@ -1,4 +1,6 @@
-﻿using SharedKernel;
+﻿using Domain.EventTypes;
+using Domain.Users;
+using SharedKernel;
 
 namespace Domain.Bookings;
 
@@ -16,7 +18,8 @@ public class Booking : Entity
     public string? Notes { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
-
+    public EventType EventType { get; set; } //Navigation property
+    public User User { get; set; } // Navigation property
     public static Booking Create(
         Guid eventTypeId,
         Guid userId,

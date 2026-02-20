@@ -14,10 +14,9 @@ public class CreateBookingValidator : AbstractValidator<CreateBookingCommand>
             .MaximumLength(100);
 
         RuleFor(x => x.GuestEmail)
-            .NotEmpty()
-            .WithMessage("Guest Email cant be empty")
-            .EmailAddress()
-            .MaximumLength(255);
+            .NotEmpty().WithMessage("Guest Email cant be empty")
+            .MaximumLength(255)
+            .EmailAddress().WithMessage("Guest Email must be valid");
 
         RuleFor(x => x.StartTime)
             .Must(BeInFuture)

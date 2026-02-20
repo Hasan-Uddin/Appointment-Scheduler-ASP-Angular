@@ -4,7 +4,7 @@ using Domain.EventTypes;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
-namespace Application.EventTypes.Create;
+namespace Application.Features.EventTypes.Create;
 
 public sealed class CreateEventTypeCommandHandler(
     IApplicationDbContext context
@@ -12,7 +12,7 @@ public sealed class CreateEventTypeCommandHandler(
 {
     async Task<Result<Guid>> ICommandHandler<CreateEventTypeCommand, Guid>.Handle(CreateEventTypeCommand command, CancellationToken cancellationToken)
     {
-        // Optional: ensure slug is unique per user
+        // ensure slug is unique per user
         EventType? existingEventType = await context.EventTypes.AsNoTracking()
             .FirstOrDefaultAsync(e => e.UserId == command.UserId && e.Slug == command.Slug, cancellationToken);
 

@@ -20,9 +20,17 @@ builder.Services
 
 builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 
-WebApplication app = builder.Build();
+string[] allowedOrigins = builder.Configuration
+    .GetSection("AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
 
-app.MapEndpoints();
+builder.Services.AddCors(options => options.AddPolicy("Frontend", policy => policy
+            .WithOrigins(allowedOrigins)
+            .AllowCredentials()
+            .AllowAnyHeader()
+            .AllowAnyMethod()));
+
+WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
@@ -36,15 +44,20 @@ app.MapHealthChecks("health", new HealthCheckOptions
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
-app.UseRequestContextLogging();
-
-app.UseSerilogRequestLogging();
 
 app.UseExceptionHandler();
+
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseRequestContextLogging();
+
+app.UseSerilogRequestLogging();
+
+app.MapEndpoints();
 
 // REMARK: If you want to use Controllers, you'll need this.
 app.MapControllers();

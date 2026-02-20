@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Application.EventTypes.Create;
+namespace Application.Features.EventTypes.Create;
 
 public sealed class CreateEventTypeCommandValidator : AbstractValidator<CreateEventTypeCommand>
 {

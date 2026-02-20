@@ -1,5 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
-using Application.EventTypes.Create;
+using Application.Features.EventTypes.Create;
 using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;

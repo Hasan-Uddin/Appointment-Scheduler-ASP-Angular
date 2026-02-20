@@ -19,7 +19,6 @@ public sealed class User : Entity
     public string? TimeZone { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    //public CalendarSetting CalendarSettings { get; set; }
 
     private readonly List<Availability> _availabilities = new();
     public IReadOnlyCollection<Availability> Availabilities => _availabilities.AsReadOnly();
@@ -38,7 +37,6 @@ public sealed class User : Entity
             Email = email,
             Name = Name,
             TimeZone = timeZone,
-            CalendarSettings = CalendarSetting.CreateDefault(),
             CreatedAt = DateTime.UtcNow
         };
     }

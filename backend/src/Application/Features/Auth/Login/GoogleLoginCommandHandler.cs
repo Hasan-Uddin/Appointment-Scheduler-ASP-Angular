@@ -34,6 +34,6 @@ public sealed class GoogleLoginCommandHandler(
 
         await userRepository.SaveChangesAsync();
 
-        return Result.Success(new GoogleLoginCommandResponse(tokenProvider.Create(user)));
+        return Result.Success(new GoogleLoginCommandResponse(tokenProvider.Create(user), user.Id));
     }
 }

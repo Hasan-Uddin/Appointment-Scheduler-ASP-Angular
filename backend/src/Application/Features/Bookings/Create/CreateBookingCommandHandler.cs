@@ -31,6 +31,12 @@ public sealed class CreateBookingCommandHandler(
             return Result.Failure<Guid>(EventTypeErrors.NotFound());
         }
 
+        if (eventType.User is null)
+        {
+            logger.LogError("EventType {EventTypeId} has no associated User", eventType.Id);
+            return Result.Failure<Guid>(EventTypeErrors.InvalidOwner);
+        }
+
         if (!eventType.IsActive)
         {
             return Result.Failure<Guid>(EventTypeErrors.Inactive);
@@ -38,13 +44,20 @@ public sealed class CreateBookingCommandHandler(
 
         DateTime endTime = request.StartTime.AddMinutes(eventType.DurationMinutes);
 
-        bool isAvailable = await slotCalculator.IsSlotAvailable(
+        Result<bool> slotResult = await slotCalculator.IsSlotAvailable(
             eventType.UserId,
             request.StartTime,
             endTime,
             cancellationToken);
 
-        if (!isAvailable)
+        // If slot calculation failed (exception, DB error, etc.)
+        if (slotResult.IsFailure)
+        {
+            return Result.Failure<Guid>(BookingErrors.SlotCalculatorFailed);
+        }
+
+        // If the slot is simply not available
+        if (!slotResult.Value)
         {
             return Result.Failure<Guid>(BookingErrors.SlotNotAvailable);
         }
@@ -71,7 +84,16 @@ public sealed class CreateBookingCommandHandler(
         );
 
         context.Bookings.Add(booking);
-        await context.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException dbEx)
+        {
+            logger.LogError(dbEx, "Failed to save booking {BookingId}", booking.Id);
+            return Result.Failure<Guid>(BookingErrors.DatabaseError);
+        }
 
         await SyncToGoogleCalendarAsync(
             booking,
@@ -160,9 +182,7 @@ public sealed class CreateBookingCommandHandler(
                     TimeZone = eventType.User.TimeZone ?? "UTC"
                 };
 
-            await emailService.SendBookingConfirmationAsync(
-                emailData,
-                cancellationToken);
+            await emailService.SendBookingConfirmationAsync(emailData, cancellationToken);
         }
         catch (Exception ex)
         {

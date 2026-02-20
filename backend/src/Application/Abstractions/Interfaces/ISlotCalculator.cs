@@ -1,16 +1,18 @@
 ﻿
+using SharedKernel;
+
 namespace Application.Abstractions.Interfaces;
 
 public interface ISlotCalculator
 {
-    Task<List<TimeSlot>> CalculateAvailableSlots(
+    Task<Result<List<TimeSlot>>> CalculateAvailableSlots(
         Guid userId,
         DateTime date,
         int durationMinutes,
         int bufferMinutes,
         CancellationToken cancellationToken);
 
-    Task<bool> IsSlotAvailable(
+    Task<Result<bool>> IsSlotAvailable(
         Guid userId,
         DateTime startTime,
         DateTime endTime,

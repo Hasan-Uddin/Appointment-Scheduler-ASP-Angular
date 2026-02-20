@@ -16,7 +16,7 @@ public class EventType : Entity
     public bool IsActive { get; private set; }
     public string? Color { get; private set; }
 
-    public User User { get;}
+    public User User { get; set; }
 
     private readonly List<Booking> _bookings = new();
 

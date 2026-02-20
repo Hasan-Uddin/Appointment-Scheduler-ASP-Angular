@@ -1,4 +1,4 @@
 ﻿
 namespace Application.Features.Auth.Login;
 
-public sealed record GoogleLoginCommandResponse(string Jwt);
+public sealed record GoogleLoginCommandResponse(string Jwt, Guid UserId);

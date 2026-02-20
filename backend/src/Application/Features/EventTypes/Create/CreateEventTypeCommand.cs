@@ -1,6 +1,6 @@
 ﻿using Application.Abstractions.Messaging;
 
-namespace Application.EventTypes.Create;
+namespace Application.Features.EventTypes.Create;
 
 public sealed class CreateEventTypeCommand : ICommand<Guid>
 {

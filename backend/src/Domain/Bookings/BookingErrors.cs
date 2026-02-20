@@ -27,4 +27,16 @@ public static class BookingErrors
     public static readonly Error Unauthorized = Error.Failure(
         "Bookings.Unauthorized",
         "You are not authorized to perform this action");
+
+    public static readonly Error UnexpectedError = Error.Failure(
+        "Bookings.UnexpectedError",
+        "UnexpectedError");
+
+    public static readonly Error DatabaseError = Error.Failure(
+        "Bookings.DatabaseError",
+        "Error Occured while saving in DB");
+
+    public static readonly Error SlotCalculatorFailed = Error.Failure(
+        "Bookings.SlotCalculatorFailed",
+        "Error Occured while Calculating Slote");
 }

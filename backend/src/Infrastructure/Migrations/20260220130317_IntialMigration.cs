@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class IntialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -93,8 +93,7 @@ namespace Infrastructure.Migrations
                     allow_overlap_booking = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
                     minimum_scheduling_gap = table.Column<int>(type: "INTEGER", nullable: true),
                     created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    user_id1 = table.Column<Guid>(type: "TEXT", nullable: true)
+                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -106,12 +105,6 @@ namespace Infrastructure.Migrations
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "fk_calendar_setting_users_user_id1",
-                        column: x => x.user_id1,
-                        principalSchema: "public",
-                        principalTable: "users",
-                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
@@ -187,8 +180,8 @@ namespace Infrastructure.Migrations
                     notes = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
                     created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
                     updated_at = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    event_type_id1 = table.Column<Guid>(type: "TEXT", nullable: true),
-                    user_id1 = table.Column<Guid>(type: "TEXT", nullable: true)
+                    event_type_id1 = table.Column<Guid>(type: "TEXT", nullable: false),
+                    user_id1 = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -205,7 +198,8 @@ namespace Infrastructure.Migrations
                         column: x => x.event_type_id1,
                         principalSchema: "public",
                         principalTable: "event_types",
-                        principalColumn: "id");
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "fk_bookings_users_user_id",
                         column: x => x.user_id,
@@ -218,7 +212,8 @@ namespace Infrastructure.Migrations
                         column: x => x.user_id1,
                         principalSchema: "public",
                         principalTable: "users",
-                        principalColumn: "id");
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -268,13 +263,6 @@ namespace Infrastructure.Migrations
                 schema: "public",
                 table: "calendar_setting",
                 column: "user_id",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_calendar_setting_user_id1",
-                schema: "public",
-                table: "calendar_setting",
-                column: "user_id1",
                 unique: true);
 
             migrationBuilder.CreateIndex(

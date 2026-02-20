@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions.Data;
 using Application.Abstractions.Interfaces;
 using Application.Abstractions.Messaging;
+using Domain.Bookings;
 using Domain.EventTypes;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
@@ -27,12 +28,20 @@ public class GetAvailableSlotsQueryHandler(
             return Result.Failure<List<TimeSlotDto>>("Event type not found");
         }
 
-        List<TimeSlot> slots = await _slotCalculator.CalculateAvailableSlots(
+        Result<List<TimeSlot>> slotsResult = await _slotCalculator.CalculateAvailableSlots(
             eventType.UserId,
             request.Date,
             eventType.DurationMinutes,
             eventType.BufferMinutes,
             cancellationToken);
+
+        // If calculation failed (DB error, SQLite translation, etc.)
+        if (slotsResult.IsFailure)
+        {
+            return (Result<List<TimeSlotDto>>)Result.Failure(BookingErrors.SlotCalculatorFailed);
+        }
+
+        List<TimeSlot> slots = slotsResult.Value;
 
         var slotDtos = slots.Select(s => new TimeSlotDto
         {

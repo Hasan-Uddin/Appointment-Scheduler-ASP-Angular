@@ -32,9 +32,16 @@ internal sealed class Create : IEndpoint
                 request.Notes
              );
 
-            Result<Guid> result = await handler.Handle(command, cancellationToken);
-
-            return result.Match(Results.Ok, CustomResults.Problem);
+            try
+            {
+                Result<Guid> result = await handler.Handle(command, cancellationToken);
+                return result.Match(Results.Ok, CustomResults.Problem);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         })
         .WithTags(Tags.Bookings)
         .AllowAnonymous(); // Public booking link scenario

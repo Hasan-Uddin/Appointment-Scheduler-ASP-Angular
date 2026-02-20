@@ -29,6 +29,10 @@ public static class EventTypeErrors
         "Event type is not active");
 
     public static readonly Error BookingConflict = Error.Conflict(
-    "Users.BookingConflict",
-    "Booking conflicts with existing booking");
+        "Users.BookingConflict",
+        "Booking conflicts with existing booking");
+
+    public static readonly Error InvalidOwner = Error.Failure(
+        "Bookings.InvalidOwner",
+        $"InvalidOwner");
 }
