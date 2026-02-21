@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.EventTypes;
+using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
@@ -12,6 +13,15 @@ public sealed class CreateEventTypeCommandHandler(
 {
     async Task<Result<Guid>> ICommandHandler<CreateEventTypeCommand, Guid>.Handle(CreateEventTypeCommand command, CancellationToken cancellationToken)
     {
+        User? user = await context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == command.UserId, cancellationToken);
+
+        if (user is null)
+        {
+            return Result.Failure<Guid>(UserErrors.NotFound());
+        }
+
         // ensure slug is unique per user
         EventType? existingEventType = await context.EventTypes.AsNoTracking()
             .FirstOrDefaultAsync(e => e.UserId == command.UserId && e.Slug == command.Slug, cancellationToken);

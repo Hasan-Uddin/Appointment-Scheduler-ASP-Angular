@@ -3,6 +3,12 @@
 	<PropertyGroup>
 	    <TargetFramework>net9.0</TargetFramework>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Persistence\Database\Migrations\**" />
+	  <EmbeddedResource Remove="Persistence\Database\Migrations\**" />
+	  <None Remove="Persistence\Database\Migrations\**" />
+	</ItemGroup>
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.Sqlite" />
     <PackageReference Include="EFCore.NamingConventions" />
@@ -22,10 +28,6 @@
 
   <ItemGroup>
 	<InternalsVisibleTo Include="ArchitectureTests" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Persistence\Database\Migrations\" />
   </ItemGroup>
 
 </Project>

@@ -26,13 +26,13 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.Property(b => b.Status)
             .HasConversion<string>();
 
-        builder.HasOne<EventType>()
-            .WithMany()
+        builder.HasOne<EventType>(e => e.EventType)
+            .WithMany(b => b.Bookings)
             .HasForeignKey(b => b.EventTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<User>()
-            .WithMany()
+        builder.HasOne<User>(u => u.User)
+            .WithMany(b => b.Bookings)
             .HasForeignKey(b => b.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 

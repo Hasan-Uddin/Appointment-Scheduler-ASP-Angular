@@ -11,7 +11,7 @@ internal sealed class Get : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/available-slots/{eventTypeId:guid}", async (
+        app.MapGet("api/available-slots/{eventTypeId:guid}/{date}", async (
             Guid eventTypeId,
             DateTime date,
             IQueryHandler<GetAvailableSlotsQuery, List<TimeSlotDto>> handler,

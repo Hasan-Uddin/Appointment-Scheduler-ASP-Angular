@@ -1,8 +1,8 @@
 using Application.Abstractions.Email;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace Infrastructure.Services.Email;
@@ -13,11 +13,20 @@ internal sealed class EmailService : IEmailService
     private readonly ILogger<EmailService> _logger;
 
     public EmailService(
-        IOptions<EmailSettings> options,
+        IConfiguration configuration,
         ILogger<EmailService> logger)
     {
-        _settings = options.Value;
         _logger = logger;
+
+        _settings = new EmailSettings
+        {
+            SmtpServer = configuration["EmailSettings:SmtpServer"]!,
+            SmtpPort = configuration.GetValue<int>("EmailSettings:SmtpPort"),
+            Username = configuration["EmailSettings:Username"]!,
+            Password = configuration["EmailSettings:Password"]!,
+            FromEmail = configuration["EmailSettings:FromEmail"]!,
+            FromName = configuration["EmailSettings:FromName"]!
+        };
     }
 
     public async Task SendAsync(

@@ -20,9 +20,8 @@ internal sealed class CreateAvailabilityCommandHandler(
                 a.UserId == request.UserId &&
                 a.DayOfWeek == request.DayOfWeek &&
                 a.IsActive &&
-                (request.StartTime >= a.StartTime && request.StartTime < a.EndTime ||
-                 request.EndTime > a.StartTime && request.EndTime <= a.EndTime ||
-                 request.StartTime <= a.StartTime && request.EndTime >= a.EndTime),
+                request.StartTime < a.EndTime &&
+                request.EndTime > a.StartTime,
                 cancellationToken);
 
         if (hasOverlap)
