@@ -19,13 +19,17 @@ public class GetAvailableSlotsQueryHandler(
         CancellationToken cancellationToken)
     {
         EventType? eventType = await _context.EventTypes
-            .Include(e => e.User)
-                .ThenInclude(u => u.Availabilities)
+            .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == request.EventTypeId, cancellationToken);
 
         if (eventType == null)
         {
             return Result.Failure<List<TimeSlotDto>>("Event type not found");
+        }
+
+        if (!eventType.IsActive)
+        {
+            return Result.Failure<List<TimeSlotDto>>(EventTypeErrors.Inactive);
         }
 
         Result<List<TimeSlot>> slotsResult = await _slotCalculator.CalculateAvailableSlots(
@@ -38,7 +42,7 @@ public class GetAvailableSlotsQueryHandler(
         // If calculation failed (DB error, SQLite translation, etc.)
         if (slotsResult.IsFailure)
         {
-            return (Result<List<TimeSlotDto>>)Result.Failure(BookingErrors.SlotCalculatorFailed);
+            return Result.Failure<List<TimeSlotDto>>(BookingErrors.SlotCalculatorFailed);
         }
 
         List<TimeSlot> slots = slotsResult.Value;

@@ -39,6 +39,9 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.HasIndex(b => b.StartTime);
         builder.HasIndex(b => b.GuestEmail);
         builder.HasIndex(b => b.EventTypeId);
-        builder.HasIndex(b => new { b.UserId, b.StartTime });
+
+        builder.HasIndex(b => new { b.UserId, b.StartTime })
+               .IsUnique()
+               .HasFilter("\"Status\" = 'Confirmed'");
     }
 }

@@ -44,9 +44,9 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
-        services.AddHttpClient<IGoogleCalendarService, GoogleCalendarService>();
+        services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
         services.AddScoped<ISlotCalculator, SlotCalculatorService>();
-        services.AddScoped<IGoogleAuthSettings, GoogleAuthSettings>();
+        services.AddSingleton<IGoogleAuthSettings, GoogleAuthSettings>();
         return services;
     }
     private static IServiceCollection Repos(this IServiceCollection services)

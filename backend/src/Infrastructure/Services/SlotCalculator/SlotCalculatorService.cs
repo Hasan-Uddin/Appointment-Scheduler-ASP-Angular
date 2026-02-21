@@ -11,30 +11,48 @@ namespace Infrastructure.Services.SlotCalculator;
 public class SlotCalculatorService(IApplicationDbContext _context) : ISlotCalculator
 {
     public async Task<Result<bool>> IsSlotAvailable(
-    Guid userId,
-    DateTime startTime,
-    DateTime endTime,
-    CancellationToken cancellationToken)
+        Guid userId,
+        DateTime startTime,
+        DateTime endTime,
+        CancellationToken cancellationToken)
     {
         try
         {
-            TimeSpan timeOfDay = startTime.TimeOfDay;
+            // Ensure UTC consistency
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+
             DayOfWeek dayOfWeek = startTime.DayOfWeek;
+            DateTime date = startTime.Date;
 
-            bool hasAvailability = await _context.Availabilities
-                .AnyAsync(a =>
-                    a.UserId == userId &&
-                    a.DayOfWeek == dayOfWeek &&
-                    a.IsActive &&
-                    timeOfDay >= a.StartTime &&
-                    timeOfDay < a.EndTime,
-                    cancellationToken);
+            // Load availability first (avoid EF TimeSpan translation issue)
+            List<Availability> availabilities = await _context.Availabilities
+                .Where(a => a.UserId == userId &&
+                            a.DayOfWeek == dayOfWeek &&
+                            a.IsActive)
+                .ToListAsync(cancellationToken);
 
-            if (!hasAvailability)
+            if (!availabilities.Any())
             {
-                return Result.Failure<bool>("No availability at this time.");
+                return Result.Success(false);
             }
 
+            // Validate slot fits inside availability window
+            bool fitsAvailability = availabilities.Any(a =>
+            {
+                DateTime availabilityStart = date.Add(a.StartTime.ToTimeSpan());
+                DateTime availabilityEnd = date.Add(a.EndTime.ToTimeSpan());
+
+                return startTime >= availabilityStart &&
+                       endTime <= availabilityEnd;
+            });
+
+            if (!fitsAvailability)
+            {
+                return Result.Success(false);
+            }
+
+            // Proper overlap check (handles all cases)
             bool hasConflict = await _context.Bookings
                 .AnyAsync(b =>
                     b.UserId == userId &&
@@ -60,7 +78,11 @@ public class SlotCalculatorService(IApplicationDbContext _context) : ISlotCalcul
     {
         try
         {
+            date = DateTime.SpecifyKind(date, DateTimeKind.Utc);
+
             DayOfWeek dayOfWeek = date.DayOfWeek;
+            DateTime startOfDay = date.Date;
+            DateTime endOfDay = startOfDay.AddDays(1);
 
             List<Availability> availabilities = await _context.Availabilities
                 .Where(a => a.UserId == userId &&
@@ -73,30 +95,37 @@ public class SlotCalculatorService(IApplicationDbContext _context) : ISlotCalcul
                 return Result.Failure<List<TimeSlot>>("No availabilities found for this day.");
             }
 
-            DateTime startOfDay = date.Date;
-
+            // Proper overlap query (handles midnight edge cases)
             List<Booking> existingBookings = await _context.Bookings
                 .Where(b => b.UserId == userId &&
                             b.Status == BookingStatus.Confirmed &&
-                            b.StartTime >= startOfDay &&
-                            b.StartTime < startOfDay.AddDays(1))
+                            b.StartTime < endOfDay &&
+                            b.EndTime > startOfDay)
                 .ToListAsync(cancellationToken);
 
             var slots = new List<TimeSlot>();
+            DateTime utcNow = DateTime.UtcNow;
 
             foreach (Availability availability in availabilities)
             {
-                DateTime currentTime = startOfDay + availability.StartTime;
-                DateTime endTime = startOfDay + availability.EndTime;
+                DateTime availabilityStart = startOfDay.Add(availability.StartTime.ToTimeSpan());
+                DateTime availabilityEnd = startOfDay.Add(availability.EndTime.ToTimeSpan());
 
-                while (currentTime.AddMinutes(durationMinutes) <= endTime)
+                DateTime currentTime = availabilityStart;
+
+                while (currentTime.AddMinutes(durationMinutes) <= availabilityEnd)
                 {
                     DateTime slotEnd = currentTime.AddMinutes(durationMinutes);
 
                     bool hasConflict = existingBookings.Any(b =>
-                        currentTime < b.EndTime && slotEnd > b.StartTime);
+                    {
+                        DateTime bufferedStart = b.StartTime.AddMinutes(-bufferMinutes);
+                        DateTime bufferedEnd = b.EndTime.AddMinutes(bufferMinutes);
 
-                    if (currentTime > DateTime.UtcNow && !hasConflict)
+                        return currentTime < bufferedEnd && slotEnd > bufferedStart;
+                    });
+
+                    if (currentTime > utcNow && !hasConflict)
                     {
                         slots.Add(new TimeSlot
                         {
@@ -110,12 +139,13 @@ public class SlotCalculatorService(IApplicationDbContext _context) : ISlotCalcul
                 }
             }
 
-            return Result.Success(slots.OrderBy(s => s.StartTime).ToList());
+            return Result.Success(
+                slots.OrderBy(s => s.StartTime).ToList());
         }
         catch (Exception ex)
         {
-            // Return a failure instead of throwing
-            return Result.Failure<List<TimeSlot>>($"Failed to calculate slots: {ex.Message}");
+            return Result.Failure<List<TimeSlot>>(
+                $"Failed to calculate slots: {ex.Message}");
         }
     }
 }

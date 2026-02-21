@@ -1,6 +1,5 @@
 ﻿using Domain.Availabilities;
 using Domain.Bookings;
-using Domain.CalendarSettings;
 using Domain.EventTypes;
 using SharedKernel;
 

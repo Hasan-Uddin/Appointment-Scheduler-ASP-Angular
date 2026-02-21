@@ -50,27 +50,16 @@ public sealed class CreateBookingCommandHandler(
             endTime,
             cancellationToken);
 
-        // If slot calculation failed (exception, DB error, etc.)
         if (slotResult.IsFailure)
         {
-            return Result.Failure<Guid>(BookingErrors.SlotCalculatorFailed);
+            //return Result.Failure<Guid>(BookingErrors.SlotCalculatorFailed);
+            return Result.Failure<Guid>(slotResult.Error);
         }
 
         // If the slot is simply not available
         if (!slotResult.Value)
         {
             return Result.Failure<Guid>(BookingErrors.SlotNotAvailable);
-        }
-
-        bool hasConflict = await context.Bookings
-            .AnyAsync(b =>
-                b.UserId == eventType.UserId &&
-                b.Status == BookingStatus.Confirmed && request.StartTime < b.EndTime && endTime > b.StartTime,
-                cancellationToken);
-
-        if (hasConflict)
-        {
-            return Result.Failure<Guid>(BookingErrors.Conflict);
         }
 
         var booking = Booking.Create(

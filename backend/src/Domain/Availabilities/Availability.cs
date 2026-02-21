@@ -7,8 +7,8 @@ public class Availability : Entity
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
     public DayOfWeek DayOfWeek { get; private set; }
-    public TimeSpan StartTime { get; private set; }
-    public TimeSpan EndTime { get; private set; }
+    public TimeOnly StartTime { get; private set; }
+    public TimeOnly EndTime { get; private set; }
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
@@ -17,8 +17,8 @@ public class Availability : Entity
     public static Availability Create(
         Guid userId,
         DayOfWeek dayOfWeek,
-        TimeSpan startTime,
-        TimeSpan endTime)
+        TimeOnly startTime,
+        TimeOnly endTime)
     {
         if (startTime >= endTime)
         {
@@ -37,7 +37,7 @@ public class Availability : Entity
         };
     }
 
-    public void Update(TimeSpan startTime, TimeSpan endTime)
+    public void Update(TimeOnly startTime, TimeOnly endTime)
     {
         if (startTime >= endTime)
         {

@@ -10,7 +10,7 @@ public static class EventTypeErrors
 
     public static Error NotFound() => Error.NotFound(
         "EventTypeErrors.NotFound",
-        $"The user not found");
+        $"The eventType not found");
 
     public static Error Unauthorized() => Error.Failure(
         "EventTypeErrors.Unauthorized",

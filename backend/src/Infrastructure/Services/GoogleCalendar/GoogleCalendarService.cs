@@ -7,15 +7,21 @@ using Google.Apis.Services;
 
 namespace Infrastructure.Services.GoogleCalendar;
 
-public sealed class GoogleCalendarService(IGoogleAuthService authService) : IGoogleCalendarService
+public sealed class GoogleCalendarService : IGoogleCalendarService
 {
+    private readonly IGoogleAuthService _authService;
+
+    public GoogleCalendarService(IGoogleAuthService authService)
+    {
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+    }
 
     private async Task<CalendarService> CreateServiceAsync(
         string refreshToken,
         CancellationToken cancellationToken)
     {
         Google.Apis.Auth.OAuth2.UserCredential credential =
-            await authService.CreateUserCredentialAsync(
+            await _authService.CreateUserCredentialAsync(
                 refreshToken,
                 cancellationToken);
 
