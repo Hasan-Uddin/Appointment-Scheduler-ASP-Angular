@@ -1,12 +1,13 @@
 ﻿using Application.Abstractions.Data;
 using Application.Abstractions.Interfaces;
 using Application.Abstractions.Messaging;
+using Application.Features.Availability.AvailableSlots;
 using Domain.Bookings;
 using Domain.EventTypes;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
-namespace Application.Features.AvailableSlots.Get;
+namespace Application.Features.Availability.Get;
 
 public class GetAvailableSlotsQueryHandler(
         IApplicationDbContext _context,

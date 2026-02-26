@@ -14,12 +14,13 @@ internal sealed class Create : IEndpoint
         public string GuestName { get; set; } = string.Empty;
         public string GuestEmail { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }
+        public string? GuestPhone { get; set; }
         public string? Notes { get; set; }
     }
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/bookings/create", async (
+        app.MapPost("api/public/bookings", async (
             Request request,
             ICommandHandler<CreateBookingCommand, Guid> handler,
             CancellationToken cancellationToken) =>
@@ -29,6 +30,7 @@ internal sealed class Create : IEndpoint
                 request.GuestName,
                 request.GuestEmail,
                 request.StartTime,
+                request.GuestPhone,
                 request.Notes
              );
 

@@ -52,8 +52,8 @@ public sealed class CreateBookingCommandHandler(
 
         if (slotResult.IsFailure)
         {
-            //return Result.Failure<Guid>(BookingErrors.SlotCalculatorFailed);
-            return Result.Failure<Guid>(slotResult.Error);
+            return Result.Failure<Guid>(BookingErrors.SlotCalculatorFailed);
+            //return Result.Failure<Guid>(slotResult.Error);
         }
 
         // If the slot is simply not available

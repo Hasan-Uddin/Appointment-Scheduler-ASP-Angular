@@ -1,4 +1,5 @@
-﻿using Application.Abstractions.Data;
+﻿using Application.Abstractions.Authentication;
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.EventTypes;
 using Domain.Users;
@@ -8,6 +9,7 @@ using SharedKernel;
 namespace Application.Features.EventTypes.Create;
 
 public sealed class CreateEventTypeCommandHandler(
+    IUserContext userContext,
     IApplicationDbContext context
 ) : ICommandHandler<CreateEventTypeCommand, Guid>
 {
@@ -15,16 +17,16 @@ public sealed class CreateEventTypeCommandHandler(
     {
         User? user = await context.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == command.UserId, cancellationToken);
+            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
 
-        if (user is null)
+        if (user is null || userContext.UserId is null)
         {
             return Result.Failure<Guid>(UserErrors.NotFound());
         }
 
         // ensure slug is unique per user
         EventType? existingEventType = await context.EventTypes.AsNoTracking()
-            .FirstOrDefaultAsync(e => e.UserId == command.UserId && e.Slug == command.Slug, cancellationToken);
+            .FirstOrDefaultAsync(e => e.UserId == userContext.UserId && e.Slug == command.Slug, cancellationToken);
 
         if (existingEventType != null)
         {
@@ -32,7 +34,7 @@ public sealed class CreateEventTypeCommandHandler(
         }
 
         var eventType = EventType.Create(
-            command.UserId,
+            (Guid)userContext.UserId,
             command.Name,
             command.Slug,
             command.DurationMinutes,

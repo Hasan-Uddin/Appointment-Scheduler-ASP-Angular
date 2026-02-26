@@ -1,6 +1,6 @@
 ﻿using Application.Abstractions.Messaging;
-using Application.Features.AvailableSlots;
-using Application.Features.AvailableSlots.Get;
+using Application.Features.Availability.AvailableSlots;
+using Application.Features.Availability.Get;
 using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;

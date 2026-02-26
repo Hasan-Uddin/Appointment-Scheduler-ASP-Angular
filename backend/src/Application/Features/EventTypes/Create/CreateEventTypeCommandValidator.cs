@@ -6,9 +6,6 @@ public sealed class CreateEventTypeCommandValidator : AbstractValidator<CreateEv
 {
     public CreateEventTypeCommandValidator()
     {
-        RuleFor(x => x.UserId)
-            .NotEmpty();
-
         RuleFor(x => x.Name)
             .NotEmpty()
             .MaximumLength(100);

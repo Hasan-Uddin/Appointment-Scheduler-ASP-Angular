@@ -1,5 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
-using Application.Features.AvailableSlots.Create;
+using Application.Features.Availability.Create;
 using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;

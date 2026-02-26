@@ -1,6 +1,6 @@
 ﻿using Application.Abstractions.Messaging;
 
-namespace Application.Features.AvailableSlots.Create;
+namespace Application.Features.Availability.Create;
 
 public sealed record CreateAvailabilityCommand(
     Guid UserId,

@@ -8,5 +8,6 @@ public sealed record class CreateBookingCommand(
     string GuestName,
     string GuestEmail,
     DateTime StartTime,
+    string? GuestPhone,
     string? Notes
 ) : ICommand<Guid>;

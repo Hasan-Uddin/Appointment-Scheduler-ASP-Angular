@@ -16,6 +16,9 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(b => b.GuestPhone)
+            .HasMaxLength(15);
+
         builder.Property(b => b.GuestEmail)
             .IsRequired()
             .HasMaxLength(255);

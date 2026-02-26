@@ -1,7 +1,6 @@
 ﻿using Application.Abstractions.Messaging;
 using Application.Features.Bookings.Get;
 using SharedKernel;
-using Web.Api.Extensions;
 using Web.Api.Infrastructure;
 
 namespace Web.Api.Endpoints.Bookings;
@@ -10,7 +9,7 @@ internal sealed class Get : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("bookings/{id:guid}", async (
+        app.MapGet("api/bookings/{id:guid}", async (
             Guid id,
             IQueryHandler<GetBookingQuery, GetBookingQueryResponse> handler,
             CancellationToken cancellationToken) =>

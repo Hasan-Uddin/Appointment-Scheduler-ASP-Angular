@@ -10,7 +10,6 @@ internal sealed class Create : IEndpoint
 {
     public sealed class Request
     {
-        public Guid UserId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
         public string? Description { get; set; }
@@ -21,14 +20,13 @@ internal sealed class Create : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("event-types", async (
+        app.MapPost("api/event-types", async (
             Request request,
             ICommandHandler<CreateEventTypeCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
             CreateEventTypeCommand command = new()
             {
-                UserId = request.UserId,
                 Name = request.Name,
                 Slug = request.Slug,
                 Description = request.Description,

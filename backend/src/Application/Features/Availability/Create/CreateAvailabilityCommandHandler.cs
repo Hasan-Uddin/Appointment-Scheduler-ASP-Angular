@@ -4,7 +4,7 @@ using Domain.Availabilities;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
-namespace Application.Features.AvailableSlots.Create;
+namespace Application.Features.Availability.Create;
 
 internal sealed class CreateAvailabilityCommandHandler(
     IApplicationDbContext context

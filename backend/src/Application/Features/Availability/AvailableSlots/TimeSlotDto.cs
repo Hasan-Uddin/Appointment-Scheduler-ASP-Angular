@@ -1,5 +1,4 @@
-﻿
-namespace Application.Features.AvailableSlots;
+﻿namespace Application.Features.Availability.AvailableSlots;
 
 public class TimeSlotDto
 {

@@ -13,6 +13,12 @@ public class CreateBookingValidator : AbstractValidator<CreateBookingCommand>
             .NotEmpty()
             .MaximumLength(100);
 
+        RuleFor(x => x.GuestPhone)
+            .NotEmpty()
+            .MaximumLength(15)
+            .Matches(@"^\+?\d{1,15}$")
+            .WithMessage("Phone number must be digits and up to 15 characters.");
+
         RuleFor(x => x.GuestEmail)
             .NotEmpty().WithMessage("Guest Email cant be empty")
             .MaximumLength(255)

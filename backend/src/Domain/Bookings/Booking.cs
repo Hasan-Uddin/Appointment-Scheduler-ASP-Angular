@@ -15,6 +15,7 @@ public class Booking : Entity
     public DateTime EndTime { get; private set; }
     public BookingStatus Status { get; private set; }
     public string? GoogleEventId { get; private set; }
+    public string? GuestPhone { get; set; }
     public string? Notes { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
