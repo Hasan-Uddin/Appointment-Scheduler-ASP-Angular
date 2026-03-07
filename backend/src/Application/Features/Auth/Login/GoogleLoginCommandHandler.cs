@@ -1,5 +1,4 @@
-﻿
-using Application.Abstractions.Authentication;
+﻿using Application.Abstractions.Authentication;
 using Application.Abstractions.Interfaces;
 using Application.Abstractions.Messaging;
 using Domain.Users;
