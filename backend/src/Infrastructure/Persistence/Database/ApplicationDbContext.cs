@@ -1,4 +1,7 @@
 ﻿using Application.Abstractions.Data;
+using Domain.Availabilities;
+using Domain.Bookings;
+using Domain.EventTypes;
 using Domain.Todos;
 using Domain.Users;
 using Infrastructure.Persistence.DomainEvents;
@@ -13,7 +16,9 @@ public sealed class ApplicationDbContext(
     : DbContext(options), IApplicationDbContext
 {
     public DbSet<User> Users { get; set; }
-
+    public DbSet<Availability> Availabilities { get; set; }
+    public DbSet<EventType> EventTypes { get; set; }
+    public DbSet<Booking> Bookings { get; set; }
     public DbSet<TodoItem> TodoItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

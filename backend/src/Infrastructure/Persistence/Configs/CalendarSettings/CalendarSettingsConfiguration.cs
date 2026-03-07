@@ -74,6 +74,7 @@ public class CalendarSettingsConfiguration : IEntityTypeConfiguration<CalendarSe
         builder.HasOne<User>()
             .WithOne()
             .HasForeignKey<CalendarSetting>(c => c.UserId)
+            .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
         // Indexes
