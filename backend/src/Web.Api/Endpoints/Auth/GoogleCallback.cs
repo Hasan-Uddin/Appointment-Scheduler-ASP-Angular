@@ -1,6 +1,8 @@
-﻿using Application.Abstractions.Messaging;
+﻿using Application.Abstractions.Authentication;
+using Application.Abstractions.Messaging;
 using Application.Features.Auth.Login;
 using SharedKernel;
+using Web.Api.Infrastructure.Authentication;
 
 namespace Web.Api.Endpoints.Auth;
 
@@ -15,6 +17,7 @@ public class GoogleCallback : IEndpoint
                     IConfiguration configuration,
                     ICommandHandler<GoogleLoginCommand, GoogleLoginCommandResponse> handler,
                     HttpContext httpContext,
+                    ITokenCookieService cookieService,
                     CancellationToken ct) =>
                 {
                     var command = new GoogleLoginCommand(code ?? string.Empty);
@@ -25,19 +28,15 @@ public class GoogleCallback : IEndpoint
                         return Results.BadRequest(result.Error);
                     }
 
-                    string jwt = result.Value.Jwt;
+                    TokenResult tokenResult = result.Value.tokenResult;
+
+                    cookieService.SetAccessToken(
+                        httpContext,
+                        tokenResult.AccessToken,
+                        tokenResult.ExpiresAtUtc);
+
                     string? frontendBase = configuration["Frontend:BaseUrl"];
-            
-                    httpContext.Response.Cookies.Append(
-                        "access_token",
-                        jwt,
-                        new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true, // MUST be true in production
-                            SameSite = SameSiteMode.None, // Required for cross-site OAuth
-                            Expires = DateTimeOffset.UtcNow.AddHours(1)
-                        });
+
                     return Results.Redirect(frontendBase!);
                 }
             )
