@@ -30,7 +30,7 @@ internal sealed class LoginUserCommandHandler(
         //    return Result.Failure<string>(UserErrors.NotFoundByEmail);
         //}
 
-        string token = tokenProvider.Create(user);
+        string token = tokenProvider.Create(user).AccessToken;
 
         return token;
     }
