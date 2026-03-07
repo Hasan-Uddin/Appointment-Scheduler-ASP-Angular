@@ -4,8 +4,8 @@ namespace Application.Abstractions.Authentication;
 
 public interface ITokenProvider
 {
-    string Create(User user);
     TokenResult Create(User user);
+    bool ShouldSlide(TokenResult tokenResult);
 }
 
 public sealed record TokenResult(
