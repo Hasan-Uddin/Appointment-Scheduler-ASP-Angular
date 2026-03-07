@@ -40,14 +40,6 @@ internal static class ServiceCollectionExtensions
 
             o.AddSecurityRequirement(securityRequirement);
         });
-        services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options => options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                context.Token = context.Request.Cookies["access_token"];
-                return Task.CompletedTask;
-            }
-        });
         return services;
     }
 }
