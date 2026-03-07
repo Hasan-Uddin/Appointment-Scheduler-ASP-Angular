@@ -1,5 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
-using Application.Features.Availability.AvailableSlots.GetMontlyList;
+using Application.Features.Available.AvailableSlots.GetMontlyList;
 using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;
@@ -10,7 +10,7 @@ internal sealed class GetAvailableDays : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/public/event-types/{eventTypeId:guid}/available-days",
+        app.MapGet("api/public/availability/{eventTypeId:guid}/available-days",
             async (
                 Guid eventTypeId,
                 int year,
@@ -28,6 +28,6 @@ internal sealed class GetAvailableDays : IEndpoint
 
                 return result.Match(Results.Ok, CustomResults.Problem);
             })
-        .WithTags(Tags.EventTypes);
+        .WithTags(Tags.Availability);
     }
 }
