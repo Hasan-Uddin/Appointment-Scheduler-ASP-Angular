@@ -3,13 +3,14 @@ using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Email;
 using Application.Abstractions.Interfaces;
-using Infrastructure.Authentication;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Database;
 using Infrastructure.Persistence.DomainEvents;
 using Infrastructure.Services.Authentication;
 using Infrastructure.Services.Authorization;
 using Infrastructure.Services.Email;
+using Infrastructure.Services.GoogleCalendar;
+using Infrastructure.Services.SlotCalculator;
 using Infrastructure.Services.Time;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -29,13 +30,13 @@ public static class DependencyInjection
         IConfiguration configuration) =>
         services
             .AddServices()
+            .Repos()
             .AddDatabase(configuration)
             .AddHealthChecks(configuration)
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal()
             .Configure<EmailSettings>(configuration.GetSection("EmailSettings"))
-            .AddScoped<IGoogleAuthSettings, GoogleAuthSettings>()
-            .AddScoped<IUserRepository, UserRepository>()
+            
             .AddScoped<IEmailService, EmailService>();
 
     private static IServiceCollection AddServices(this IServiceCollection services)
@@ -43,7 +44,14 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
-
+        services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
+        services.AddScoped<ISlotCalculator, SlotCalculatorService>();
+        services.AddSingleton<IGoogleAuthSettings, GoogleAuthSettings>();
+        return services;
+    }
+    private static IServiceCollection Repos(this IServiceCollection services)
+    {
+        services.AddScoped<IUserRepository, UserRepository>();
         return services;
     }
 
@@ -79,15 +87,59 @@ public static class DependencyInjection
             .AddJwtBearer(o =>
             {
                 o.RequireHttpsMetadata = false;
+
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!)),
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!)),
+
+                    ValidateIssuer = true,
                     ValidIssuer = configuration["Jwt:Issuer"],
+
+                    ValidateAudience = true,
                     ValidAudience = configuration["Jwt:Audience"],
+
+                    ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
+                };
+
+                o.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        string? token = context.Request.Cookies["access_token"];
+
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            context.Token = token;
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = ctx =>
+                    {
+                        Console.WriteLine("AUTH FAILED:");
+                        Console.WriteLine(ctx.Exception);
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = ctx =>
+                    {
+                        Console.WriteLine("TOKEN VALIDATED");
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
+        //Cookies
+        services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options => options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies["access_token"];
+                return Task.CompletedTask;
+            }
+        });
         services.AddHttpContextAccessor();
         services.AddScoped<IUserContext, UserContext>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

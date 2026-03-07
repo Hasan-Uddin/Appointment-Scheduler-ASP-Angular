@@ -10,12 +10,14 @@ namespace Infrastructure.Services.Authentication;
 
 internal sealed class TokenProvider(IConfiguration configuration) : ITokenProvider
 {
-    public string Create(User user)
+    public TokenResult Create(User user)
     {
         string secretKey = configuration["Jwt:Secret"]!;
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        int expirationMinutes = configuration.GetValue<int>("Jwt:ExpirationInMinutes");
+        DateTime expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -24,16 +26,21 @@ internal sealed class TokenProvider(IConfiguration configuration) : ITokenProvid
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email)
             ]),
-            Expires = DateTime.UtcNow.AddMinutes(configuration.GetValue<int>("Jwt:ExpirationInMinutes")),
+            Expires = expiresAt,
             SigningCredentials = credentials,
             Issuer = configuration["Jwt:Issuer"],
             Audience = configuration["Jwt:Audience"]
         };
 
         var handler = new JsonWebTokenHandler();
-
         string token = handler.CreateToken(tokenDescriptor);
 
-        return token;
+        return new TokenResult(token, expiresAt);
+    }
+
+    public bool ShouldSlide(TokenResult tokenResult)
+    {
+        int threshold = configuration.GetValue<int>("Jwt:SlidingThresholdInMinutes");
+        return tokenResult.ExpiresAtUtc - DateTime.UtcNow <= TimeSpan.FromMinutes(threshold);
     }
 }

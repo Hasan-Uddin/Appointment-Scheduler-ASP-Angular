@@ -2,44 +2,83 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application.Abstractions.Authentication;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Calendar.v3;
 using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Services.Authentication;
 
-public class GoogleAuthService(
-    HttpClient _httpClient,
-    IConfiguration _configuration
-    ) : IGoogleAuthService
+public sealed class GoogleAuthService : IGoogleAuthService
 {
-    private static readonly JsonSerializerOptions _jsonOptions = new()
+    private readonly HttpClient _httpClient;
+    private readonly IConfiguration _configuration;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
+    public GoogleAuthService(
+        HttpClient httpClient,
+        IConfiguration configuration)
+    {
+        _httpClient = httpClient;
+        _configuration = configuration;
+    }
+
+    // Exchange authorization code
     public async Task<GoogleUserInfo> ExchangeCodeAsync(string code)
     {
-        TokenResponse tokenResponse = await RequestTokenAsync(code);
+        TokenResponseDto tokenResponse = await RequestTokenAsync(code);
 
         var handler = new JwtSecurityTokenHandler();
         JwtSecurityToken jwt = handler.ReadJwtToken(tokenResponse.IdToken);
 
-        string email = jwt.Claims.First(x => x.Type == "email").Value;
-        string name = jwt.Claims.First(x => x.Type == "name").Value;
-        string sub = jwt.Claims.First(x => x.Type == "sub").Value;
-        string? pictureUrl = jwt.Claims.FirstOrDefault(x => x.Type == "picture")?.Value;
-
         return new GoogleUserInfo
         {
-            Email = email,
-            Name = name,
-            GoogleId = sub,
-            PictureUrl = pictureUrl ?? ""
+            Email = jwt.Claims.First(x => x.Type == "email").Value,
+            Name = jwt.Claims.First(x => x.Type == "name").Value,
+            GoogleId = jwt.Claims.First(x => x.Type == "sub").Value,
+            PictureUrl = jwt.Claims.FirstOrDefault(x => x.Type == "picture")?.Value ?? string.Empty,
+
+            GoogleRefreshToken = tokenResponse.RefreshToken
         };
     }
 
-    private async Task<TokenResponse> RequestTokenAsync(string code)
+    // Create credential (AUTO REFRESH ENABLED)
+    public async Task<UserCredential> CreateUserCredentialAsync(
+        string refreshToken,
+        CancellationToken cancellationToken)
     {
-        string tokenEndpoint = "https://oauth2.googleapis.com/token";
+        using var flow = new GoogleAuthorizationCodeFlow(
+            new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = _configuration["Google:ClientId"],
+                    ClientSecret = _configuration["Google:ClientSecret"]
+                },
+                Scopes = new[] { CalendarService.Scope.Calendar }
+            });
+
+        var token = new Google.Apis.Auth.OAuth2.Responses.TokenResponse
+        {
+            RefreshToken = refreshToken
+        };
+
+        var credential = new UserCredential(flow, "user", token);
+
+        // Ensures access token is valid immediately
+        await credential.RefreshTokenAsync(cancellationToken);
+
+        return credential;
+    }
+
+    // Exchange code for tokens
+    private async Task<TokenResponseDto> RequestTokenAsync(string code)
+    {
+        const string endpoint = "https://oauth2.googleapis.com/token";
 
         using var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -50,21 +89,22 @@ public class GoogleAuthService(
             { "grant_type", "authorization_code" }
         });
 
-        HttpResponseMessage response = await _httpClient.PostAsync(tokenEndpoint, content);
+        HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
 
         if (!response.IsSuccessStatusCode)
         {
             string error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Google token exchange failed: {error}");
+            throw new InvalidOperationException(
+                $"Google token exchange failed: {error}");
         }
 
         string json = await response.Content.ReadAsStringAsync();
-        Console.WriteLine(json);
 
-        return JsonSerializer.Deserialize<TokenResponse>(json, _jsonOptions)!;
+        return JsonSerializer.Deserialize<TokenResponseDto>(
+            json, JsonOptions)!;
     }
 
-    private sealed class TokenResponse
+    private sealed class TokenResponseDto
     {
         [JsonPropertyName("access_token")]
         public string AccessToken { get; set; } = default!;
@@ -74,14 +114,5 @@ public class GoogleAuthService(
 
         [JsonPropertyName("refresh_token")]
         public string RefreshToken { get; set; } = default!;
-
-        [JsonPropertyName("token_type")]
-        public string TokenType { get; set; } = default!;
-
-        [JsonPropertyName("expires_in")]
-        public int ExpireIn { get; set; }
-
-        [JsonPropertyName("refresh_token_expires_in")]
-        public int RefreshTokenExpiresIn { get; set; }
     }
 }

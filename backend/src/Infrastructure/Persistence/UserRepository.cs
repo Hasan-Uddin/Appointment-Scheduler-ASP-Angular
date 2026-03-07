@@ -10,6 +10,9 @@ public class UserRepository(IApplicationDbContext context) : IUserRepository
     public async Task<User?> GetByEmailAsync(string email)
         => await context.Users.FirstOrDefaultAsync(x => x.Email == email);
 
+    public async Task<User?> GetByIdAsync(Guid id)
+        => await context.Users.FirstOrDefaultAsync(x => x.Id == id);
+
     public async Task AddAsync(User user)
         => await context.Users.AddAsync(user);
 
