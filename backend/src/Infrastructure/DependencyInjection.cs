@@ -87,14 +87,51 @@ public static class DependencyInjection
             .AddJwtBearer(o =>
             {
                 o.RequireHttpsMetadata = false;
+
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!)),
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!)),
+
+                    ValidateIssuer = true,
                     ValidIssuer = configuration["Jwt:Issuer"],
+
+                    ValidateAudience = true,
                     ValidAudience = configuration["Jwt:Audience"],
+
+                    ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
+
+                o.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        string? token = context.Request.Cookies["access_token"];
+
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            context.Token = token;
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = ctx =>
+                    {
+                        Console.WriteLine("AUTH FAILED:");
+                        Console.WriteLine(ctx.Exception);
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = ctx =>
+                    {
+                        Console.WriteLine("TOKEN VALIDATED");
+                        return Task.CompletedTask;
+                    }
+                };
             });
+
+        //Cookies
         services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options => options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -107,7 +144,6 @@ public static class DependencyInjection
         services.AddScoped<IUserContext, UserContext>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<ITokenProvider, TokenProvider>();
-        services.AddScoped<ITokenCookieService, TokenCookieService>();
 
         return services;
     }
