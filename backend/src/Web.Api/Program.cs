@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using Web.Api;
 using Web.Api.Extensions;
+using Web.Api.Infrastructure;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,8 @@ app.UseExceptionHandler();
 app.UseCors("Frontend");
 
 app.UseAuthentication();
+
+//app.UseMiddleware<JwtSlidingMiddleware>();
 
 app.UseAuthorization();
 

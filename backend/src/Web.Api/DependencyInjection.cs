@@ -1,4 +1,5 @@
 ﻿using Web.Api.Infrastructure;
+using Web.Api.Infrastructure.Authentication;
 
 namespace Web.Api;
 
@@ -14,6 +15,7 @@ public static class DependencyInjection
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
+        services.AddScoped<ITokenCookieService, TokenCookieService>();
 
         return services;
     }
