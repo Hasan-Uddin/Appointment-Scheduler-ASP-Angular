@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: appointment-scheduler-api
+    env: docker
+    region: ohio
+    plan: free
+    dockerContext: .
+    dockerfilePath: src/Web.Api/Dockerfile
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+    disk:
+      name: sqlite-data
+      mountPath: /app/Data
+      sizeGB: 1
