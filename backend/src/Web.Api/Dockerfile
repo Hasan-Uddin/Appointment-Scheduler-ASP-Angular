@@ -18,7 +18,8 @@ WORKDIR "/src/src/Web.Api"
 RUN dotnet publish "Web.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final Production Stage
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+RUN mkdir -p /app/Data
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Web.Api.dll"]
