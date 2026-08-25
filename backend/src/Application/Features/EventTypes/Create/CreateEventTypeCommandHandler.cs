@@ -1,7 +1,6 @@
-using Application.Abstractions.Authentication;
+﻿using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
-using Application.Features.EventTypes.GetAll;
 using Domain.EventTypes;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +11,9 @@ namespace Application.Features.EventTypes.Create;
 public sealed class CreateEventTypeCommandHandler(
     IUserContext userContext,
     IApplicationDbContext context
-) : ICommandHandler<CreateEventTypeCommand, EventTypeResponse>
+) : ICommandHandler<CreateEventTypeCommand, Guid>
 {
-    async Task<Result<EventTypeResponse>> ICommandHandler<CreateEventTypeCommand, EventTypeResponse>.Handle(CreateEventTypeCommand command, CancellationToken cancellationToken)
+    async Task<Result<Guid>> ICommandHandler<CreateEventTypeCommand, Guid>.Handle(CreateEventTypeCommand command, CancellationToken cancellationToken)
     {
         User? user = await context.Users
             .AsNoTracking()
@@ -22,7 +21,7 @@ public sealed class CreateEventTypeCommandHandler(
 
         if (user is null || userContext.UserId is null)
         {
-            return Result.Failure<EventTypeResponse>(UserErrors.NotFound());
+            return Result.Failure<Guid>(UserErrors.NotFound());
         }
 
         // ensure slug is unique per user
@@ -47,21 +46,6 @@ public sealed class CreateEventTypeCommandHandler(
         await context.EventTypes.AddAsync(eventType, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        var response = new EventTypeResponse
-        {
-            Id = eventType.Id,
-            UserId = eventType.UserId,
-            Name = eventType.Name,
-            Slug = eventType.Slug,
-            Description = eventType.Description,
-            DurationMinutes = eventType.DurationMinutes,
-            BufferMinutes = eventType.BufferMinutes,
-            IsActive = eventType.IsActive,
-            Color = eventType.Color,
-            CreatedAt = eventType.CreatedAt,
-            UpdatedAt = eventType.UpdatedAt
-        };
-
-        return response;
+        return eventType.Id;
     }
 }
