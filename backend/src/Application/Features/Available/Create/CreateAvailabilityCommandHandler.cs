@@ -1,5 +1,6 @@
-﻿using Application.Abstractions.Data;
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.Features.Available.Get;
 using Domain.Availabilities;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
@@ -8,9 +9,9 @@ namespace Application.Features.Available.Create;
 
 internal sealed class CreateAvailabilityCommandHandler(
     IApplicationDbContext context
-) : ICommandHandler<CreateAvailabilityCommand, Guid>
+) : ICommandHandler<CreateAvailabilityCommand, AvailabilityResponse>
 {
-    public async Task<Result<Guid>> Handle(
+    public async Task<Result<AvailabilityResponse>> Handle(
         CreateAvailabilityCommand request,
         CancellationToken cancellationToken)
     {
@@ -26,7 +27,7 @@ internal sealed class CreateAvailabilityCommandHandler(
 
         if (hasOverlap)
         {
-            return Result.Failure<Guid>(AvailabilityErrors.Overlap);
+            return Result.Failure<AvailabilityResponse>(AvailabilityErrors.Overlap);
         }
 
         var availability = Availability.Create(
@@ -39,6 +40,17 @@ internal sealed class CreateAvailabilityCommandHandler(
         context.Availabilities.Add(availability);
         await context.SaveChangesAsync(cancellationToken);
 
-        return Result.Success(availability.Id);
+        var response = new AvailabilityResponse
+        {
+            Id = availability.Id,
+            UserId = availability.UserId,
+            DayOfWeek = availability.DayOfWeek,
+            StartTime = availability.StartTime,
+            EndTime = availability.EndTime,
+            IsActive = availability.IsActive,
+            CreatedAt = availability.CreatedAt
+        };
+
+        return Result.Success(response);
     }
 }
