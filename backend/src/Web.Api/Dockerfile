@@ -20,8 +20,5 @@ RUN dotnet publish "Web.Api.csproj" -c Release -o /app/publish /p:UseAppHost=fal
 # Final Production Stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=build /app/publish .
-
-# Render dynamically assigns a port to the PORT environment variable.
-# If PORT is set, we bind to it (Render). Otherwise, we let ASP.NET Core use its defaults (local HTTPS).
-ENTRYPOINT ["sh", "-c", "if [ -z \"$PORT\" ]; then dotnet Web.Api.dll; else dotnet Web.Api.dll --urls http://0.0.0.0:$PORT; fi"]
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "Web.Api.dll"]
