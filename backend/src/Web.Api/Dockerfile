@@ -20,6 +20,8 @@ RUN dotnet publish "Web.Api.csproj" -c Release -o /app/publish /p:UseAppHost=fal
 # Final Production Stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true \
+    DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false
 RUN mkdir -p /app/Data
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Web.Api.dll"]
