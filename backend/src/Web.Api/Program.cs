@@ -35,8 +35,10 @@ WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwaggerWithUi();
+    // app.UseSwaggerWithUi();
 }
+
+app.UseSwaggerWithUi();
 
 app.ApplyMigrations();
 
