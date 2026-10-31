@@ -1,5 +1,6 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.Features.EventTypes.Create;
+using Application.Features.EventTypes.GetAll;
 using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;
@@ -22,7 +23,7 @@ internal sealed class Create : IEndpoint
     {
         app.MapPost("api/event-types", async (
             Request request,
-            ICommandHandler<CreateEventTypeCommand, Guid> handler,
+            ICommandHandler<CreateEventTypeCommand, EventTypeResponse> handler,
             CancellationToken cancellationToken) =>
         {
             CreateEventTypeCommand command = new()
@@ -35,7 +36,7 @@ internal sealed class Create : IEndpoint
                 Color = request.Color
             };
 
-            Result<Guid> result = await handler.Handle(command, cancellationToken);
+            Result<EventTypeResponse> result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
