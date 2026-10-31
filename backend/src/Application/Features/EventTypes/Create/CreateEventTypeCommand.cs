@@ -1,8 +1,9 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
+using Application.Features.EventTypes.GetAll;
 
 namespace Application.Features.EventTypes.Create;
 
-public sealed class CreateEventTypeCommand : ICommand<Guid>
+public sealed class CreateEventTypeCommand : ICommand<EventTypeResponse>
 {
     public string Name { get; init; } = string.Empty;
     public string Slug { get; init; } = string.Empty;

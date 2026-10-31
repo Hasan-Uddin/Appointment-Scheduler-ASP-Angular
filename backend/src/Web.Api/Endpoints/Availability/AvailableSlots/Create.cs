@@ -1,5 +1,6 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.Features.Available.Create;
+using Application.Features.Available.Get;
 using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;
@@ -20,7 +21,7 @@ public sealed class Create : IEndpoint
     {
         app.MapPost("api/available-slots", async (
             Request request,
-            ICommandHandler<CreateAvailabilityCommand, Guid> handler,
+            ICommandHandler<CreateAvailabilityCommand, AvailabilityResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var command = new CreateAvailabilityCommand(
@@ -29,7 +30,7 @@ public sealed class Create : IEndpoint
                 request.StartTime,
                 request.EndTime);
 
-            Result<Guid> result = await handler.Handle(command, cancellationToken);
+            Result<AvailabilityResponse> result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
