@@ -1,4 +1,5 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
+using Application.Features.Available.Get;
 
 namespace Application.Features.Available.Create;
 
@@ -7,4 +8,4 @@ public sealed record CreateAvailabilityCommand(
     DayOfWeek DayOfWeek,
     TimeOnly StartTime,
     TimeOnly EndTime
-) : ICommand<Guid>;
+) : ICommand<AvailabilityResponse>;
